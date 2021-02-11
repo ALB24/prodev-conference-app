@@ -12,17 +12,7 @@ docker run \
 -p 5432:5432 \
 -d --rm --name postgres postgres
 
-while ! docker logs postgres | grep ready; do
+while [ "$(($(docker logs postgres 2>&1 | grep -o "ready to accept" | wc -l)))" -lt "2" ]; do
   sleep 3
 done
 
-cd accounts
-npm run migrate -- up
-cd ../badges
-npm run migrate -- up
-cd ../presentations
-npm run migrate -- up
-cd ../events
-npm run migrate -- up
-
-# docker kill postgres
