@@ -93,7 +93,7 @@ router.post('/', async ctx => {
   await pool.query(`
     INSERT INTO badges (email, name, company_name, role, event_id)
     VALUES ($1, $2, $3, '', $4)
-    ON CONFLICT (email)
+    ON CONFLICT (email, event_id)
     DO NOTHING
   `, [email, name, companyName, eventId]);
 

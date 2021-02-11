@@ -1,0 +1,100 @@
+@import url('./bootstrap.css');
+
+.App {
+  text-align: center;
+}
+
+.App-workspace {
+  margin-top: 75px;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.red-border {
+  border: 1px solid red;
+}
+
+.blue-border {
+  border: 1px solid blue;
+}
+
+/* HOME PAGE */
+.home-container {
+  height: 700px;
+}
+
+#card-home {
+  background-color: rgba(210, 179, 185, 0.8);
+  border-radius: 10px;
+  background-color: rgba(0, 144, 218, 0.8);
+}
+
+#card-home h1 {
+  letter-spacing: 2px;
+  word-spacing: 5px;
+  font-size: 3.7rem;
+}
+
+#card-home p {
+  font-size: 1.3rem;
+}
+
+/* Main NAV */
+.h-center {
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+#main-nav {
+  border-bottom: 1px solid black;
+}
+
+.oswald-semibold {
+  font-family: Oswald;
+  font-weight: 600;
+}
+
+.oswald-regular {
+  font-family: Oswald;
+}
+
+.show {
+  display: block;
+}
+
+.clickable {
+  cursor: pointer;
+}

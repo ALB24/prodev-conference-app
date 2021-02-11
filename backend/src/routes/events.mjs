@@ -4,7 +4,7 @@ import { authorize, identify } from '../security.mjs';
 
 async function getOneEvent(id, email) {
   const { rows } = await pool.query(`
-    SELECT e.id, e.name, e.from, e.to, e.description, e.logo_url AS "logoUrl", e.created, e.updated,
+    SELECT e.id, e.name, e.from, e.to, e.description, e.logo_url AS "logoUrl", e.created, e.updated, e.version,
            e.number_of_presentations AS "numberOfPresentations",
            e.maximum_number_of_attendees AS "maximumNumberOfAttendees",
            l.id AS location_id, l.name AS location_name, l.city AS location_city, l.state AS location_state,
@@ -22,7 +22,7 @@ async function getOneEvent(id, email) {
   }
 
   const record = rows[0];
-  let { name, from, to, description, logoUrl, created, updated, numberOfPresentations, maximumNumberOfAttendees } = record;
+  let { name, from, to, description, logoUrl, created, updated, numberOfPresentations, maximumNumberOfAttendees, version } = record;
   return {
     id,
     name,
@@ -34,6 +34,7 @@ async function getOneEvent(id, email) {
     updated,
     numberOfPresentations,
     maximumNumberOfAttendees,
+    version,
     location: {
       id: record.location_id,
       name: record.location_name,
@@ -147,7 +148,10 @@ router.delete('/:id', async ctx => {
 });
 
 router.put('/:id', identify, async ctx => {
-  const { name, from, to, description, logoUrl, locationId, version, numberOfPresentations, maximumNumberOfAttendees } = ctx.request.body;
+  let { name, from, to, description, logoUrl, locationId, version, numberOfPresentations, maximumNumberOfAttendees } = ctx.request.body;
+  if (from === '') { from = null; }
+  if (to === '') { to = null; }
+  if (logoUrl === '') { logoUrl = null; }
   let eventRows;
   try {
     const { rows } = await pool.query(`

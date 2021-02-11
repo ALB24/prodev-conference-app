@@ -16,21 +16,23 @@ Here are the steps that you should go through to get a working local development
 
 ### Getting the relational database set up
 
-You must have an instance of PostgreSQL running for the app to work. If you're not
-adverse to installing the RDBMS on your local system, you can do that using macOS
-Homebrew or the package manager for you GNU/Linux distribution.
+You must have an instance of PostgreSQL running for the app to work. If you're
+not adverse to installing the RDBMS on your local system, you can do that using
+macOS Homebrew or the package manager for you GNU/Linux distribution.
 
 Once you have that, you need to create the database and its user for the
 application. On macOS, Homebrew installs your user as a valid user, so you can
 just run the following two commands. The first will create a user named
-*conference_app_user* with the password _5UvUwY3xRH86xXhx_. Then, it creates a
-database named *conference_app* owned by the *conference_app_user*. Feel free to
-change those values as you want. Then, put them in the `.env` file mentioned
-later in the _Setting up your environment_ section.
+_conference_app_user_ with the password _5UvUwY3xRH86xXhx_. Then, the second
+command creates a database named _conference_app_ owned by the
+_conference_app_user_. Feel free to change those values as you want. Then, put
+them in the `.env` file mentioned later in the _Setting up your environment_
+section.
 
 ```sh
 # For PostgreSQL installed with Homebrew
 psql postgres -c "CREATE ROLE conference_app_user WITH LOGIN CREATEDB PASSWORD '5UvUwY3xRH86xXhx';"
+psql postgres -c "CREATE DATABASE conference_app WITH OWNER conference_app_user;"
 ```
 
 If you installed PostgreSQL using a package manager for your Linux distribution,
@@ -39,6 +41,7 @@ use `sudo` to change your user to the _postgres_ user.
 ```sh
 # For PostgreSQL installed with a package manager like apt
 sudo -u postgres psql -c "CREATE ROLE conference_app_user WITH LOGIN CREATEDB PASSWORD '5UvUwY3xRH86xXhx';"
+sudo -u postgres psql -c "CREATE DATABASE conference_app WITH OWNER conference_app_user;"
 ```
 
 ### Using the right version of Node.js
@@ -56,6 +59,15 @@ installation instructions.
 # Should work for Bash and Z-shell
 nvm install $(cat .nvmrc)
 nvm use
+```
+
+If you have any problems with nvm and are using macOS Catalina, try the
+following, then restart your terminal instance.
+
+```sh
+# Should work for Bash and Z-shell
+touch ~/.zshrc
+. ~/.nvm/nvm.sh
 ```
 
 If you plan on doing development, then run
@@ -100,14 +112,6 @@ PGAPPNAME=    # The name of the app, like Conference GO!
 ```
 
 ### Run the migrations
-
-If you have not created the database for your app, use the migrator to do so.
-You can name it whatever you want, but it needs to match what you put in your
-`.env` file for `PGDATABASE`.
-
-```sh
-npm run migrate -- db:create «the database name you set as PGDATABASE in the previous step»
-```
 
 You need to migrate the database to its proper state.
 

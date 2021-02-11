@@ -14,8 +14,8 @@ exports.setup = function(options, seedLink) {
   seed = seedLink;
 };
 
-exports.up = function(db) {
-  return db.createTable('badges', {
+exports.up = async function(db) {
+  await db.createTable('badges', {
     id: {
       autoIncrement: true,
       notNull: true,
@@ -27,7 +27,6 @@ exports.up = function(db) {
       length: 100,
       notNull: true,
       type: 'string',
-      unique: true,
     },
     name: {
       notNull: true,
@@ -57,6 +56,7 @@ exports.up = function(db) {
       }
     },
   });
+  return await db.addIndex('badges', 'badges_email_event_id_ux', ['email', 'event_id'], true);
 };
 
 exports.down = function(db) {

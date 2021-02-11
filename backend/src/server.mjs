@@ -22,8 +22,8 @@ app.use(cors({
 app.use(niv.koa());
 app.use(bearer);
 
-app.use(bodyParser());
+app.use(bodyParser({ multipart: true }));
 
 app.use(router.routes());
 
-app.listen(port);
+app.listen(port, () => console.log(`Accepting connections on ${port}`));
