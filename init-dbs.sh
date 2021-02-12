@@ -48,4 +48,4 @@ cd ../events
 npm i
 npm run migrate -- up
 
-# docker kill postgres
+docker kill postgres
