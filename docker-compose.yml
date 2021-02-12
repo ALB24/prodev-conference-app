@@ -1,0 +1,75 @@
+version: "3.9"
+services:
+  postgres: 
+    image: "postgres"
+    volumes:
+      - ./db/data:/var/lib/postgresql/data
+  nginx:
+    image: nginx:1.19-alpine 
+    volumes:
+      - ./nginx/conference.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - 3000:80
+  accounts:
+    build:
+      context: ./accounts
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./accounts/src:/usr/src/app/src
+    environment:
+      - PORT=80
+      - JWT_SECRET=${JWT_SECRET}
+      - PGAPPNAME="Conference GO"
+      - PGPORT=5432
+      - PGHOST=postgres
+      - PGDATABASE=accounts
+      - PGUSER=accounts_user
+      - PGPASSWORD=${POSTGRES_ACCOUNTS_PW}
+  presentations:
+    build:
+      context: ./presentations
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./presentations/src:/usr/src/app/src
+    environment:
+      - PORT=80
+      - JWT_SECRET=${JWT_SECRET}
+      - PGAPPNAME="Conference GO"
+      - PGPORT=5432
+      - PGHOST=postgres
+      - PGDATABASE=presentations
+      - PGUSER=presentations_user
+      - PGPASSWORD=${POSTGRES_PRESENTATIONS_PW}
+  events:
+    build:
+      context: ./events
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./events/src:/usr/src/app/src
+    environment:
+      - PORT=80
+      - JWT_SECRET=${JWT_SECRET}
+      - PGAPPNAME="Conference GO"
+      - PGPORT=5432
+      - PGHOST=postgres
+      - PGDATABASE=events
+      - PGUSER=events_user
+      - PGPASSWORD=${POSTGRES_EVENTS_PW}
+  badges:
+    depends_on:
+      - postgres
+    build:
+      context: ./badges
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./badges/src:/usr/src/app/src
+    environment:
+      - PORT=80
+      - JWT_SECRET=${JWT_SECRET}
+      - PGAPPNAME="Conference GO"
+      - PGPORT=5432
+      - PGHOST=postgres
+      - PGDATABASE=badges
+      - PGUSER=badges_user
+      - PGPASSWORD=${POSTGRES_BADGES_PW}
+
