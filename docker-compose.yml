@@ -18,7 +18,13 @@ services:
       - ./accounts/src:/usr/src/app/src
     environment:
       - PORT=80
-      - JWT_SECRET=supersecret
+      - JWT_SECRET=${JWT_SECRET}
+      - PGAPPNAME="Conference GO"
+      - PGPORT=5432
+      - PGHOST=postgres
+      - PGDATABASE=accounts
+      - PGUSER=accounts_user
+      - PGPASSWORD=${POSTGRES_ACCOUNTS_PW}
   presentations:
     build:
       context: ./presentations
@@ -27,6 +33,13 @@ services:
       - ./presentations/src:/usr/src/app/src
     environment:
       - PORT=80
+      - JWT_SECRET=${JWT_SECRET}
+      - PGAPPNAME="Conference GO"
+      - PGPORT=5432
+      - PGHOST=postgres
+      - PGDATABASE=presentations
+      - PGUSER=presentations_user
+      - PGPASSWORD=${POSTGRES_PRESENTATIONS_PW}
   events:
     build:
       context: ./events
@@ -35,6 +48,13 @@ services:
       - ./events/src:/usr/src/app/src
     environment:
       - PORT=80
+      - JWT_SECRET=${JWT_SECRET}
+      - PGAPPNAME="Conference GO"
+      - PGPORT=5432
+      - PGHOST=postgres
+      - PGDATABASE=events
+      - PGUSER=events_user
+      - PGPASSWORD=${POSTGRES_EVENTS_PW}
   badges:
     depends_on:
       - postgres
@@ -43,4 +63,13 @@ services:
       dockerfile: Dockerfile.dev
     volumes:
       - ./badges/src:/usr/src/app/src
-    env_file: ./badges/.env
+    environment:
+      - PORT=80
+      - JWT_SECRET=${JWT_SECRET}
+      - PGAPPNAME="Conference GO"
+      - PGPORT=5432
+      - PGHOST=postgres
+      - PGDATABASE=badges
+      - PGUSER=badges_user
+      - PGPASSWORD=${POSTGRES_BADGES_PW}
+

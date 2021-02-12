@@ -1,7 +1,0 @@
-FROM node:15-alpine
-WORKDIR /migrator
-COPY ./migrations .
-COPY ./database.json .
-COPY package*.json .
-RUN npm install
-CMD ["npm", "migrate", "--", "up"]
