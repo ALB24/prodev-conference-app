@@ -15,7 +15,7 @@ exports.setup = function(options, seedLink) {
 };
 
 exports.up = function(db) {
-  return db.createTable('presentations', {
+  return db.createTable('locations', {
     id: {
       autoIncrement: true,
       notNull: true,
@@ -23,61 +23,54 @@ exports.up = function(db) {
       type: 'int',
       unsigned: true,
     },
-    email: {
+    name: {
+      length: 100,
+      notNull: true,
+      type: 'string',
+      unique: true,
+    },
+    city: {
       length: 100,
       notNull: true,
       type: 'string',
     },
-    presenter_name: {
+    state: {
+      length: 2,
       notNull: true,
       type: 'string',
-      length: 100,
     },
-    company_name: {
-      length: 100,
-      type: 'string',
-    },
-    title: {
+    maximum_vendor_count: {
       notNull: true,
-      type: 'string',
-      length: 100,
+      type: 'int',
+      unsigned: true,
     },
-    synopsis: {
+    room_count: {
       notNull: true,
-      type: 'text',
+      type: 'int',
+      unsigned: true,
     },
     created: {
       notNull: true,
       type: 'timestamp',
       defaultValue: new String('CURRENT_TIMESTAMP'),
     },
-    event_id: {
-      type: 'int',
-      unsigned: true,
+    updated: {
       notNull: true,
+      type: 'timestamp',
+      defaultValue: new String('CURRENT_TIMESTAMP'),
     },
-    status_id: {
-      type: 'int',
-      unsigned: true,
+    version: {
       notNull: true,
-      foreignKey: {
-        name: 'presentation_presentation_status_id_fk',
-        table: 'presentation_statuses',
-        rules: {
-          onDelete: 'NO ACTION',
-          onUpdate: 'RESTRICT',
-        },
-        mapping: 'id',
-      },
+      type: 'int',
       defaultValue: 1,
     },
   });
 };
 
-exports.down = function(db) {
-  return db.dropTable('presentations');
-};
 
+exports.down = function(db) {
+  return db.dropTable('locations');
+};
 
 exports._meta = {
   "version": 1

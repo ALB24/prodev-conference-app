@@ -1,6 +1,15 @@
 #!/bin/bash
 source .env
 
+FLAG=$1
+
+NUM_ACCEPTS=2
+
+if [ "$FLAG" == "-reset" ]; then
+  echo "RESET"
+  NUM_ACCEPTS=1
+fi
+
 docker run \
 -v `pwd`/db/data:/var/lib/postgresql/data \
 -v `pwd`/db/init.sh:/docker-entrypoint-initdb.d/init.sh \
@@ -12,7 +21,7 @@ docker run \
 -p 5432:5432 \
 -d --rm --name postgres postgres
 
-while [ "$(($(docker logs postgres 2>&1 | grep -o "ready to accept" | wc -l)))" -lt "2" ]; do
+while [ "$(($(docker logs postgres 2>&1 | grep -o "ready to accept" | wc -l)))" -lt "$NUM_ACCEPTS" ]; do
   sleep 3
 done
 

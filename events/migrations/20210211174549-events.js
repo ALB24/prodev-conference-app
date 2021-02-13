@@ -15,11 +15,82 @@ exports.setup = function(options, seedLink) {
 };
 
 exports.up = function(db) {
-  return null;
+  return db.createTable('events', {
+    id: {
+      autoIncrement: true,
+      notNull: true,
+      primaryKey: true,
+      type: 'int',
+      unsigned: true,
+    },
+    name: {
+      length: 100,
+      notNull: true,
+      type: 'string',
+    },
+    from: {
+      type: 'date',
+    },
+    to: {
+      type: 'date'
+    },
+    description: {
+      notNull: true,
+      type: 'text',
+    },
+    logo_url: {
+      length: 100,
+      type: 'string',
+    },
+    account_id: {
+      type: 'int',
+      unsigned: true,
+      notNull: true,
+    },
+    location_id: {
+      type: 'int',
+      unsigned: true,
+      notNull: true,
+      foreignKey: {
+        name: 'events_locations_id_fk',
+        table: 'locations',
+        rules: {
+          onDelete: 'CASCADE',
+          onUpdate: 'RESTRICT',
+        },
+        mapping: 'id',
+      }
+    },
+    created: {
+      notNull: true,
+      type: 'timestamp',
+      defaultValue: new String('CURRENT_TIMESTAMP'),
+    },
+    updated: {
+      notNull: true,
+      type: 'timestamp',
+      defaultValue: new String('CURRENT_TIMESTAMP'),
+    },
+    version: {
+      notNull: true,
+      type: 'int',
+      defaultValue: 1,
+    },
+    number_of_presentations: {
+      notNull: true,
+      type: 'int',
+      defaultValue: 10,
+    },
+    maximum_number_of_attendees: {
+      notNull: true,
+      type: 'int',
+      defaultValue: 100,
+    },
+  });
 };
 
 exports.down = function(db) {
-  return null;
+  return db.dropTable('events');
 };
 
 exports._meta = {
