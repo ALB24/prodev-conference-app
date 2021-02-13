@@ -20,7 +20,6 @@ app.use(cors({
 }));
 
 app.use(niv.koa());
-app.use(bearer);
 
 app.use(bodyParser());
 
