@@ -14,11 +14,9 @@ if (secret === undefined || secret.length === 0) {
   process.exit(2);
 }
 
-export const router = new Router({
-  prefix: '/session',
-});
+export const router = new Router();
 
-router.put('new_session', '/', async ctx => {
+router.put('new_session', 'session', async ctx => {
   let { email, password } = ctx.request.body;
   email = email.toLowerCase().trim();
   password = password.trim();

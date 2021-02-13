@@ -19,6 +19,13 @@ app.use(cors({
   allowHeaders: ['Authorization', 'Content-Type']
 }));
 
+// app.use(ctx => {
+//   console.log('gotrequest')
+//   console.log(ctx.request.path)
+//   return ctx
+// })
+
+
 app.use(niv.koa());
 app.use(bearer);
 

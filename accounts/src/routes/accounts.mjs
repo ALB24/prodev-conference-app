@@ -6,9 +6,7 @@ import { trimProperty } from '../strings.mjs';
 
 const DEFAULT_HASH = '$2a$10$QlWNohhjpbGuty6UnyeeJOeKY6dKbiaoFxeWdOoIUiNYaO/ZD2khW';
 
-export const router = new Router({
-  prefix: '/accounts',
-});
+export const router = new Router();
 
 router.post('new_account', '/', async ctx => {
   trimProperty(ctx.request.body, 'name');
@@ -24,7 +22,7 @@ router.post('new_account', '/', async ctx => {
     ctx.status = 400;
     return ctx.body = {
       code: 'INVALID_PARAMETER',
-      message: 'Could not create a location because at least one of the values is bad.',
+      message: 'Could not create a account because at least one of the values is bad.',
       errors: v.errors,
     };
   }
