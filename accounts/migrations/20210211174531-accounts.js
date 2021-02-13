@@ -15,11 +15,51 @@ exports.setup = function(options, seedLink) {
 };
 
 exports.up = function(db) {
-  return null;
+  return db.createTable('accounts', {
+    id: {
+      autoIncrement: true,
+      notNull: true,
+      primaryKey: true,
+      type: 'int',
+      unsigned: true,
+    },
+    email: {
+      length: 100,
+      notNull: true,
+      type: 'string',
+      unique: true,
+    },
+    hashed_password: {
+      length: 100,
+      notNull: true,
+      type: 'string',
+    },
+    name: {
+      length: 100,
+      notNull: true,
+      type: 'string',
+    },
+    created: {
+      notNull: true,
+      type: 'timestamp',
+      defaultValue: new String('CURRENT_TIMESTAMP'),
+    },
+    updated: {
+      notNull: true,
+      type: 'timestamp',
+      defaultValue: new String('CURRENT_TIMESTAMP'),
+    },
+    version: {
+      notNull: true,
+      type: 'int',
+      defaultValue: 1,
+    },
+  });
 };
 
+
 exports.down = function(db) {
-  return null;
+  return db.dropTable('accounts');
 };
 
 exports._meta = {
