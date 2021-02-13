@@ -37,7 +37,6 @@ router.put('new_session', 'session', async ctx => {
     const token = jwt.sign({ name: rows[0].name, email }, secret);
     ctx.status = 201;
     ctx.body = { token };
-    console.log(token)
   } else {
     ctx.status = 404;
     ctx.body = {
