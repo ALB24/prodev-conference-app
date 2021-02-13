@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import { pool } from './db/index.mjs';
+import {
+  pool
+} from './db/index.mjs';
 
 dotenv.config();
 
@@ -51,12 +53,13 @@ export async function bearer(ctx, next) {
   await next();
 }
 
-export async function identify(ctx, next) {
-  let { rows } = await pool.query(`
-    SELECT id FROM accounts WHERE email = $1
-  `, [ctx.claims.email]);
-  if (rows.length === 1) {
-    ctx.claims.id = rows[0].id;
-  }
-  await next();
-}
+// account id is embedded in the token 
+// export async function identify(ctx, next) {
+//   let { rows } = await pool.query(`
+//     SELECT id FROM accounts WHERE email = $1
+//   `, [ctx.claims.email]);
+//   if (rows.length === 1) {
+//     ctx.claims.id = rows[0].id;
+//   }
+//   await next();
+// }

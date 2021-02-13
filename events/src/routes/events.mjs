@@ -1,9 +1,15 @@
-import { pool } from '../db/index.mjs';
+import {
+  pool
+} from '../db/index.mjs';
 import Router from '@koa/router';
-import { authorize, identify } from '../security.mjs';
+import {
+  authorize,
+} from '../security.mjs';
 
 async function getOneEvent(id, email) {
-  const { rows } = await pool.query(`
+  const {
+    rows
+  } = await pool.query(`
     SELECT e.id, e.name, e.from, e.to, e.description, e.logo_url AS "logoUrl", e.created, e.updated, e.version,
            e.number_of_presentations AS "numberOfPresentations",
            e.maximum_number_of_attendees AS "maximumNumberOfAttendees",
@@ -22,7 +28,18 @@ async function getOneEvent(id, email) {
   }
 
   const record = rows[0];
-  let { name, from, to, description, logoUrl, created, updated, numberOfPresentations, maximumNumberOfAttendees, version } = record;
+  let {
+    name,
+    from,
+    to,
+    description,
+    logoUrl,
+    created,
+    updated,
+    numberOfPresentations,
+    maximumNumberOfAttendees,
+    version
+  } = record;
   return {
     id,
     name,
@@ -53,7 +70,9 @@ export const router = new Router();
 router.use(authorize);
 
 router.get('/', async ctx => {
-  const { rows } = await pool.query(`
+  const {
+    rows
+  } = await pool.query(`
       SELECT e.id, e.name, e.from, e.to, e.description, e.logo_url AS "logoUrl"
       FROM events e
       JOIN accounts a ON(e.account_id = a.id)
@@ -64,7 +83,7 @@ router.get('/', async ctx => {
   ctx.body = rows;
 });
 
-router.post('/', identify, async ctx => {
+router.post('/', async ctx => {
   const accountId = ctx.claims.id;
   if (!accountId) {
     ctx.status = 401;
@@ -73,11 +92,17 @@ router.post('/', identify, async ctx => {
       message: 'Provided an invalid authorization token',
     };
   }
-  const { name, description, locationId } = ctx.request.body;
+  const {
+    name,
+    description,
+    locationId
+  } = ctx.request.body;
 
   let eventRows = null;
   try {
-    const { rows } = await pool.query(`
+    const {
+      rows
+    } = await pool.query(`
       INSERT INTO events (name, description, location_id, account_id)
       VALUES ($1, $2, $3, $4)
       RETURNING id, created, updated, version,
@@ -93,13 +118,22 @@ router.post('/', identify, async ctx => {
       message: 'Could not create an event with that location or account.'
     };
   }
-  const { rows: locationRows } = await pool.query(`
+  const {
+    rows: locationRows
+  } = await pool.query(`
     SELECT l.id, l.name, l.city, l.state, l.maximum_vendor_count as "maximumVendorCount", l.room_count AS "roomCount", created, updated
     FROM locations l
     WHERE l.id = $1
   `, [locationId]);
 
-  const [{ id, created, updated, version, numberOfPresentations, maximumNumberOfAttendees }] = eventRows;
+  const [{
+    id,
+    created,
+    updated,
+    version,
+    numberOfPresentations,
+    maximumNumberOfAttendees
+  }] = eventRows;
   ctx.status = 201;
   ctx.body = {
     name,
@@ -116,7 +150,10 @@ router.post('/', identify, async ctx => {
 });
 
 router.get('/:id', async ctx => {
-  const { id } = ctx.params;
+  console.log('get')
+  const {
+    id
+  } = ctx.params;
   const event = await getOneEvent(id, ctx.claims.email);
 
   if (event === null) {
@@ -131,7 +168,10 @@ router.get('/:id', async ctx => {
 });
 
 router.delete('/:id', async ctx => {
-  const { id } = ctx.params;
+  console.log('del')
+  const {
+    id
+  } = ctx.params;
   const event = await getOneEvent(id, ctx.claims.email);
 
   if (event !== null) {
@@ -145,14 +185,33 @@ router.delete('/:id', async ctx => {
   ctx.body = event || {};
 });
 
-router.put('/:id', identify, async ctx => {
-  let { name, from, to, description, logoUrl, locationId, version, numberOfPresentations, maximumNumberOfAttendees } = ctx.request.body;
-  if (from === '') { from = null; }
-  if (to === '') { to = null; }
-  if (logoUrl === '') { logoUrl = null; }
+router.put('/:id', async ctx => {
+  console.log('put')
+  let {
+    name,
+    from,
+    to,
+    description,
+    logoUrl,
+    locationId,
+    version,
+    numberOfPresentations,
+    maximumNumberOfAttendees
+  } = ctx.request.body;
+  if (from === '') {
+    from = null;
+  }
+  if (to === '') {
+    to = null;
+  }
+  if (logoUrl === '') {
+    logoUrl = null;
+  }
   let eventRows;
   try {
-    const { rows } = await pool.query(`
+    const {
+      rows
+    } = await pool.query(`
       UPDATE events
       SET name = $3
         , "from" = $4
@@ -168,7 +227,7 @@ router.put('/:id', identify, async ctx => {
         AND version = $2
         AND account_id = $11
       RETURNING id, created, updated, version
-    `, [ctx.params.id, version, name, from, to, description, logoUrl, locationId, numberOfPresentations,  maximumNumberOfAttendees, ctx.claims.id ]);
+    `, [ctx.params.id, version, name, from, to, description, logoUrl, locationId, numberOfPresentations, maximumNumberOfAttendees, ctx.claims.id]);
     eventRows = rows;
   } catch (e) {
     console.error(e);
@@ -186,13 +245,20 @@ router.put('/:id', identify, async ctx => {
     };
   }
 
-  const { rows: locationRows } = await pool.query(`
+  const {
+    rows: locationRows
+  } = await pool.query(`
     SELECT l.id, l.name, l.city, l.state, l.maximum_vendor_count as "maximumVendorCount", l.room_count AS "roomCount", created, updated
     FROM locations l
     WHERE l.id = $1
   `, [locationId]);
 
-  const [{ id, created, updated: newUpdated, version: newVersion }] = eventRows;
+  const [{
+    id,
+    created,
+    updated: newUpdated,
+    version: newVersion
+  }] = eventRows;
   ctx.body = {
     name,
     description,

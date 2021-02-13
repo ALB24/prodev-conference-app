@@ -3,8 +3,12 @@ import cors from '@koa/cors';
 import dotenv from 'dotenv';
 import Koa from 'koa';
 import niv from 'node-input-validator';
-import { router } from './routes/index.mjs';
-import { bearer } from './security.mjs';
+import {
+  router
+} from './routes/index.mjs';
+import {
+  bearer
+} from './security.mjs';
 
 dotenv.config();
 
@@ -22,6 +26,10 @@ app.use(cors({
 app.use(niv.koa());
 app.use(bearer);
 
+// app.use(async (ctx, next) => {
+//   console.log(ctx.request.path)
+//   await next()
+// })
 app.use(bodyParser());
 
 app.use(router.routes());
