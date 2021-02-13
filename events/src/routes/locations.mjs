@@ -11,9 +11,7 @@ async function selectAll() {
   `);
 }
 
-export const router = new Router({
-  prefix: '/locations',
-});
+export const router = new Router();
 
 router.use(authorize);
 

@@ -48,9 +48,7 @@ async function getOneEvent(id, email) {
   };
 }
 
-export const router = new Router({
-  prefix: '/events',
-});
+export const router = new Router();
 
 router.use(authorize);
 
