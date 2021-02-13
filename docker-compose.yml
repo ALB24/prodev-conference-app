@@ -1,60 +1,105 @@
 version: "3.9"
 services:
-  postgres: 
-    image: "postgres"
-    volumes:
-      - ./db/data:/var/lib/postgresql/data
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+      args:
+        # The port number, here, comes from the fact that
+        # in the ports section after this one, we map 8080
+        # on the local computer to 80 in the running
+        # container.
+        REACT_APP_API_URL: http://localhost:3000/api
+    # This depends on backend because Nginx will stop if
+    # it can't find the DNS entry named "backend" when
+    # it starts
+    depends_on: 
+      - accounts
+      - badges
+      - presentations
+      - events
+    ports:
+      - "8080:80"
   nginx:
     image: nginx:1.19-alpine 
     volumes:
       - ./nginx/conference.conf:/etc/nginx/conf.d/default.conf
+    # This depends on backend because Nginx will stop if
+    # it can't find the DNS entry named "backend" when
+    # it starts
+    depends_on: 
+      - accounts
+      - badges
+      - presentations
+      - events
     ports:
       - 3000:80
   accounts:
+    depends_on: 
+      - postgres
     build:
       context: ./accounts
       dockerfile: Dockerfile.dev
     volumes:
       - ./accounts/src:/usr/src/app/src
     environment:
-      - PORT=80
-      - JWT_SECRET=${JWT_SECRET}
-      - PGAPPNAME="Conference GO"
-      - PGPORT=5432
-      - PGHOST=postgres
-      - PGDATABASE=accounts
-      - PGUSER=accounts_user
-      - PGPASSWORD=${POSTGRES_ACCOUNTS_PW}
+      PORT: 80
+      JWT_SECRET: ${JWT_SECRET}
+      PGHOST: postgres
+      PGPORT: 5432
+      PGAPPNAME: "Conference GO"
+      # See the Dockerfile for the backend to understand
+      # how the WAIT_HOSTS values are used
+      WAIT_HOSTS: postgres:5432
+
+      # These values are the same as below
+      PGDATABASE: accounts
+      PGUSER: accounts_user
+      PGPASSWORD: ${POSTGRES_ACCOUNTS_PW}
   presentations:
+    depends_on: 
+      - postgres
     build:
       context: ./presentations
       dockerfile: Dockerfile.dev
     volumes:
       - ./presentations/src:/usr/src/app/src
     environment:
-      - PORT=80
-      - JWT_SECRET=${JWT_SECRET}
-      - PGAPPNAME="Conference GO"
-      - PGPORT=5432
-      - PGHOST=postgres
-      - PGDATABASE=presentations
-      - PGUSER=presentations_user
-      - PGPASSWORD=${POSTGRES_PRESENTATIONS_PW}
+      PORT: 80
+      JWT_SECRET: ${JWT_SECRET}
+      PGHOST: postgres
+      PGPORT: 5432
+      PGAPPNAME: "Conference GO"
+      # See the Dockerfile for the backend to understand
+      # how the WAIT_HOSTS values are used
+      WAIT_HOSTS: postgres:5432
+
+      # These values are the same as below
+      PGDATABASE: presentations
+      PGUSER: presentations_user
+      PGPASSWORD: ${POSTGRES_PRESENTATIONS_PW}
   events:
+    depends_on: 
+      - postgres
     build:
       context: ./events
       dockerfile: Dockerfile.dev
     volumes:
       - ./events/src:/usr/src/app/src
     environment:
-      - PORT=80
-      - JWT_SECRET=${JWT_SECRET}
-      - PGAPPNAME="Conference GO"
-      - PGPORT=5432
-      - PGHOST=postgres
-      - PGDATABASE=events
-      - PGUSER=events_user
-      - PGPASSWORD=${POSTGRES_EVENTS_PW}
+      PORT: 80
+      JWT_SECRET: ${JWT_SECRET}
+      PGHOST: postgres
+      PGPORT: 5432
+      PGAPPNAME: "Conference GO"
+      # See the Dockerfile for the backend to understand
+      # how the WAIT_HOSTS values are used
+      WAIT_HOSTS: postgres:5432
+
+      # These values are the same as below
+      PGDATABASE: events
+      PGUSER: events_user
+      PGPASSWORD: ${POSTGRES_EVENTS_PW}
   badges:
     depends_on:
       - postgres
@@ -64,12 +109,30 @@ services:
     volumes:
       - ./badges/src:/usr/src/app/src
     environment:
-      - PORT=80
-      - JWT_SECRET=${JWT_SECRET}
-      - PGAPPNAME="Conference GO"
-      - PGPORT=5432
-      - PGHOST=postgres
-      - PGDATABASE=badges
-      - PGUSER=badges_user
-      - PGPASSWORD=${POSTGRES_BADGES_PW}
+      PORT: 80
+      JWT_SECRET: ${JWT_SECRET}
+      PGHOST: postgres
+      PGPORT: 5432
+      PGAPPNAME: "Conference GO"
+      # See the Dockerfile for the backend to understand
+      # how the WAIT_HOSTS values are used
+      WAIT_HOSTS: postgres:5432
+
+      # These values are the same as below
+      PGDATABASE: badges
+      PGUSER: badges_user
+      PGPASSWORD: ${POSTGRES_BADGES_PW}
+  postgres: 
+    image: "postgres:13"
+    environment: 
+      # POSTGRES_USER: conference_app_user
+      # POSTGRES_DB: conference_app
+      POSTGRES_PASSWORD: ${POSTGRES_ROOT_PW}
+      BADGES_PASSWORD: ${POSTGRES_BADGES_PW}
+      EVENTS_PASSWORD: ${POSTGRES_EVENTS_PW}
+      ACCOUNTS_PASSWORD: ${POSTGRES_ACCOUNTS_PW}
+      PRESENTATIONS_PASSWORD: ${POSTGRES_PRESENTATIONS_PW}
+    volumes:
+      - ./db/data:/var/lib/postgresql/data
+      - ./db/init.sh:/docker-entrypoint-initdb.d/init.sh
 
