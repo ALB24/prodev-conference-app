@@ -154,7 +154,7 @@ router.put('/presentations/:id/approved', async ctx => {
   }
 
   const {
-    id
+    id: presentationId
   } = ctx.params;
 
   const {
@@ -164,9 +164,9 @@ router.put('/presentations/:id/approved', async ctx => {
     SET status_id = 2
     WHERE id = $1
     AND status_id IN (1, 2)
-    AND event_id IN (SELECT e.id FROM events e WHERE e.account_id = $2)
+    AND event_id = $2
     RETURNING email, presenter_name AS "presenterName", company_name AS "companyName", title, synopsis
-  `, [id, ctx.claims.id]);
+  `, [presentationId, eventId]);
   if (rows.length === 0) {
     ctx.status = 404;
     return ctx.body = {
@@ -183,16 +183,17 @@ router.put('/presentations/:id/approved', async ctx => {
     synopsis
   } = rows[0];
 
-  await pool.query(`
-    INSERT INTO badges (email, name, company_name, role, event_id)
-    VALUES ($1, $2, $3, 'SPEAKER', $4)
-    ON CONFLICT (email, event_id)
-    DO
-    UPDATE SET role = 'SPEAKER'
-  `, [email, presenterName, companyName, eventId]);
+  // TODO: Send the presenter to the badges service
+  // await pool.query(`
+  //   INSERT INTO badges (email, name, company_name, role, event_id)
+  //   VALUES ($1, $2, $3, 'SPEAKER', $4)
+  //   ON CONFLICT (email, event_id)
+  //   DO
+  //   UPDATE SET role = 'SPEAKER'
+  // `, [email, presenterName, companyName, eventId]);
 
   ctx.body = {
-    id,
+    id: presentationId,
     email,
     presenterName,
     companyName,
@@ -217,8 +218,8 @@ router.put('/presentations/:id/rejected', async ctx => {
     UPDATE presentations
     SET status_id = 3
     WHERE id = $1
-    AND status_id IN (1, 3)
-    AND event_id IN (SELECT e.id FROM events e WHERE e.account_id = $2)
+    AND status_id IN (1, 2)
+    AND event_id = $2
     RETURNING email, presenter_name AS "presenterName", company_name AS "companyName", title, synopsis
   `, [id, ctx.claims.id]);
   if (rows.length === 0) {

@@ -215,18 +215,11 @@ router.post('/presenters', async ctx => {
 });
 
 async function upsertBadge({ name, email, companyName, eventId, role = 'presenter'}) {
-  //TODO: some validation, or trust the consumer?
   const { rows } = await pool.query(`
     INSERT INTO badges (name, email, company_name, event_id, role)
     VALUES ($1, $2, $3, $4, $5)
     RETURNING id, created
   `, [name, email, companyName, eventId, role]);
-  // await pool.query(`
-  //   INSERT INTO badges (email, name, company_name, role, event_id)
-  //   VALUES ($1, $2, $3, '', $4)
-  //   ON CONFLICT (email, event_id)
-  //   DO NOTHING
-  // `, [email, name, companyName, eventId]);
   return rows[0];
 }
 
