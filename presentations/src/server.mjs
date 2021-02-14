@@ -1,38 +1,29 @@
-import bodyParser from 'koa-body';
-import cors from '@koa/cors';
-import dotenv from 'dotenv';
-import Koa from 'koa';
-import niv from 'node-input-validator';
-import {
-  router
-} from './routes/index.mjs';
-import {
-  bearer,
-} from './security.mjs';
+import bodyParser from 'koa-body'
+import cors from '@koa/cors'
+import dotenv from 'dotenv'
+import Koa from 'koa'
+import niv from 'node-input-validator'
+import { security, logging } from 'conference-app-lib'
+import { router } from './router.mjs'
+dotenv.config()
 
-dotenv.config();
-
-const port = Number.parseInt(process.env['PORT']);
+const port = Number.parseInt(process.env['PORT'])
 if (Number.isNaN(port)) {
-  console.error('ERROR: Missing PORT environment variable.');
-  process.exit(1);
+  console.error('ERROR: Missing PORT environment variable.')
+  process.exit(1)
 }
 
-const app = new Koa();
+const app = new Koa()
 app.use(cors({
   allowHeaders: ['Authorization', 'Content-Type']
-}));
+}))
+app.use(niv.koa())
+app.use(bodyParser())
 
-app.use(async (ctx, next) => {
-  console.log(ctx.request.method, ctx.request.path)
-  await next()
-})
+app.use(logging.logRequests)
+app.use(security.bearer)
+app.use(security.authorize)
 
-app.use(niv.koa());
-app.use(bearer);
+app.use(router.routes())
 
-app.use(bodyParser());
-
-app.use(router.routes());
-
-app.listen(port);
+app.listen(port)

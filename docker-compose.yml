@@ -66,6 +66,7 @@ services:
     volumes:
       - ./presentations/src:/usr/src/app/src
       - ./presentations/migrations:/usr/src/app/migrations
+      - ./shared-libs:/usr/src/shared-libs
     environment:
       PORT: 80
       JWT_SECRET: ${JWT_SECRET}
@@ -114,6 +115,7 @@ services:
     volumes:
       - ./badges/src:/usr/src/app/src
       - ./badges/migrations:/usr/src/app/migrations
+      - ./shared-libs:/usr/src/shared-libs
     environment:
       PORT: 80
       JWT_SECRET: ${JWT_SECRET}
@@ -143,4 +145,6 @@ services:
       - ./db/init.sh:/docker-entrypoint-initdb.d/init.sh
     ports:
       - 5432:5432
+  rabbitmq:
+    image: "rabbitmq:3"
 
