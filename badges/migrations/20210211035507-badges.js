@@ -56,6 +56,11 @@ exports.up = function(db) {
         mapping: 'event_id',
       }
     },
+    created: {
+      notNull: true,
+      type: 'timestamp',
+      defaultValue: new String('CURRENT_TIMESTAMP'),
+    },
   });
 };
 

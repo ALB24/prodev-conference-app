@@ -1,22 +1,22 @@
 import {
-  authorize,
-} from '../security.mjs';
-import {
   pool
 } from '../db/index.mjs';
 import {
   trimProperty
 } from '../strings.mjs';
 import Router from '@koa/router';
+import {authorize} from '../security.mjs'
 
 const STATUSES = new Map();
 STATUSES.set(1, 'SUBMITTED');
 STATUSES.set(2, 'APPROVED');
 STATUSES.set(3, 'REJECTED');
 
-export const router = new Router();
+export const router = new Router({
+  prefix: '/events/:eventId'
+});
 
-router.use(authorize);
+router.use(authorize)
 
 router.get('/', async ctx => {
   const {
@@ -52,7 +52,9 @@ router.get('/', async ctx => {
 });
 
 router.post('/', async ctx => {
-  console.log('post')
+  console.log('POST handler, event', ctx.params.eventId)
+
+  // REQUEST VALIDATION
   trimProperty(ctx.request.body, 'email');
   trimProperty(ctx.request.body, 'presenterName');
   trimProperty(ctx.request.body, 'companyName');
@@ -93,6 +95,7 @@ router.post('/', async ctx => {
 
   const accountId = ctx.claims.id;
 
+  // INSERT PRESENTATION
   const {
     email,
     presenterName,
@@ -104,13 +107,9 @@ router.post('/', async ctx => {
     rows: presentationRows
   } = await pool.query(`
     INSERT INTO presentations (email, presenter_name, company_name, title, synopsis, event_id)
-    SELECT $1, $2, $3, $4, $5, e.id
-    FROM events e
-    JOIN accounts a ON (e.account_id = a.id) 
-    WHERE e.id = $6
-    AND a.id = $7
+    SELECT $1, $2, $3, $4, $5, $6
     RETURNING id, status_id AS "statusId"
-  `, [email, presenterName, companyName, title, synopsis, eventId, accountId]);
+  `, [email, presenterName, companyName, title, synopsis, eventId]);
 
   if (presentationRows.length === 0) {
     ctx.status = 404;

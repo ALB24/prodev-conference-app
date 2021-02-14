@@ -35,6 +35,23 @@ export async function authorize(ctx, next) {
       message: 'The token provided is invalid.'
     }
   }
+
+  const { rows } = await pool.query(`
+    SELECT account_id, event_id FROM events_accounts
+    WHERE account_id = ${ ctx.claims.id }
+    AND event_id = ${ ctx.params.eventId }
+  `);
+
+  console.log(rows)
+
+  if (rows.length === 0) {
+    ctx.status = 404;
+    return ctx.body = {
+      code: 'INVALID_PARAMETER',
+      message: 'Could not find an event with that id to add an attendee to'
+    };
+  }
+
   await next();
 }
 
@@ -52,14 +69,3 @@ export async function bearer(ctx, next) {
   }
   await next();
 }
-
-// account id is embedded in the token 
-// export async function identify(ctx, next) {
-//   let { rows } = await pool.query(`
-//     SELECT id FROM accounts WHERE email = $1
-//   `, [ctx.claims.email]);
-//   if (rows.length === 1) {
-//     ctx.claims.id = rows[0].id;
-//   }
-//   await next();
-// }
