@@ -7,7 +7,7 @@ import {
   router
 } from './routes/index.mjs';
 import {
-  bearer
+  bearer,
 } from './security.mjs';
 
 dotenv.config();
@@ -23,10 +23,10 @@ app.use(cors({
   allowHeaders: ['Authorization', 'Content-Type']
 }));
 
-// app.use(async (ctx, next) => {
-//   console.log(ctx.request.path)
-//   await next()
-// })
+app.use(async (ctx, next) => {
+  console.log(ctx.request.method, ctx.request.path)
+  await next()
+})
 
 app.use(niv.koa());
 app.use(bearer);

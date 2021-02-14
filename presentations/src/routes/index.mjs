@@ -5,4 +5,4 @@ import {
 
 export const router = new Router();
 
-router.use('/events/:eventId', presentationsRouter.routes(), presentationsRouter.allowedMethods());
+router.use(presentationsRouter.routes(), presentationsRouter.allowedMethods());

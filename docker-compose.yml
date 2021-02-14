@@ -80,6 +80,8 @@ services:
       PGDATABASE: presentations
       PGUSER: presentations_user
       PGPASSWORD: ${POSTGRES_PRESENTATIONS_PW}
+      BADGE_SVC_HOST: http://badges
+      EVENT_SVC_HOST: http://events
   events:
     depends_on: 
       - postgres

@@ -1,22 +1,25 @@
 import {
-  authorize,
-} from '../security.mjs';
-import {
   pool
 } from '../db/index.mjs';
 import {
   trimProperty
 } from '../strings.mjs';
 import Router from '@koa/router';
+import {authorize} from '../security.mjs'
+import { BadgeService } from '../BadgeService.mjs'
+
+const badgeService = new BadgeService(process.env.BADGE_SVC_HOST)
 
 const STATUSES = new Map();
 STATUSES.set(1, 'SUBMITTED');
 STATUSES.set(2, 'APPROVED');
 STATUSES.set(3, 'REJECTED');
 
-export const router = new Router();
+export const router = new Router({
+  prefix: '/events/:eventId'
+});
 
-router.use(authorize);
+router.use(authorize)
 
 router.get('/', async ctx => {
   const {
@@ -38,13 +41,13 @@ router.get('/', async ctx => {
   const {
     rows
   } = await pool.query(`
-    SELECT p.id, p.email, p.presenter_name AS "presenterName", p.company_name AS "companyName", p.title, p.synopsis, p.status_id AS "statusId"
+    SELECT id, email, presenter_name, company_name, title, synopsis, status_id
     FROM presentations p
-    JOIN events e ON (p.event_id = e.id)
-    JOIN accounts a ON (e.account_id = a.id)
-    WHERE a.id = $1
-    AND e.id = $2
-  `, [ctx.claims.id, eventId])
+    WHERE event_id = $1
+  `, [eventId])
+
+  console.log("ROWS", rows)
+
   ctx.body = rows.map(p => ({
     ...p,
     status: STATUSES.get(p.statusId),
@@ -52,7 +55,9 @@ router.get('/', async ctx => {
 });
 
 router.post('/', async ctx => {
-  console.log('post')
+  console.log('POST handler, event', ctx.params.eventId)
+
+  // REQUEST VALIDATION
   trimProperty(ctx.request.body, 'email');
   trimProperty(ctx.request.body, 'presenterName');
   trimProperty(ctx.request.body, 'companyName');
@@ -93,6 +98,7 @@ router.post('/', async ctx => {
 
   const accountId = ctx.claims.id;
 
+  // INSERT PRESENTATION
   const {
     email,
     presenterName,
@@ -104,13 +110,9 @@ router.post('/', async ctx => {
     rows: presentationRows
   } = await pool.query(`
     INSERT INTO presentations (email, presenter_name, company_name, title, synopsis, event_id)
-    SELECT $1, $2, $3, $4, $5, e.id
-    FROM events e
-    JOIN accounts a ON (e.account_id = a.id) 
-    WHERE e.id = $6
-    AND a.id = $7
+    SELECT $1, $2, $3, $4, $5, $6
     RETURNING id, status_id AS "statusId"
-  `, [email, presenterName, companyName, title, synopsis, eventId, accountId]);
+  `, [email, presenterName, companyName, title, synopsis, eventId]);
 
   if (presentationRows.length === 0) {
     ctx.status = 404;
@@ -155,7 +157,7 @@ router.put('/presentations/:id/approved', async ctx => {
   }
 
   const {
-    id
+    id: presentationId
   } = ctx.params;
 
   const {
@@ -165,9 +167,9 @@ router.put('/presentations/:id/approved', async ctx => {
     SET status_id = 2
     WHERE id = $1
     AND status_id IN (1, 2)
-    AND event_id IN (SELECT e.id FROM events e WHERE e.account_id = $2)
+    AND event_id = $2
     RETURNING email, presenter_name AS "presenterName", company_name AS "companyName", title, synopsis
-  `, [id, ctx.claims.id]);
+  `, [presentationId, eventId]);
   if (rows.length === 0) {
     ctx.status = 404;
     return ctx.body = {
@@ -184,16 +186,26 @@ router.put('/presentations/:id/approved', async ctx => {
     synopsis
   } = rows[0];
 
-  await pool.query(`
-    INSERT INTO badges (email, name, company_name, role, event_id)
-    VALUES ($1, $2, $3, 'SPEAKER', $4)
-    ON CONFLICT (email, event_id)
-    DO
-    UPDATE SET role = 'SPEAKER'
-  `, [email, presenterName, companyName, eventId]);
+  const presenter = {
+    name: presenterName,
+    email,
+    companyName,
+    presentationId
+  }
 
+  // TODO: Send the presenter to the badges service
+  // await pool.query(`
+  //   INSERT INTO badges (email, name, company_name, role, event_id)
+  //   VALUES ($1, $2, $3, 'SPEAKER', $4)
+  //   ON CONFLICT (email, event_id)
+  //   DO
+  //   UPDATE SET role = 'SPEAKER'
+  // `, [email, presenterName, companyName, eventId]);
+  const badgeResponse = await badgeService.sendPresenter(eventId, presenter, ctx.token)
+
+  console.log("Badge response:", badgeResponse)
   ctx.body = {
-    id,
+    id: presentationId,
     email,
     presenterName,
     companyName,
@@ -202,9 +214,6 @@ router.put('/presentations/:id/approved', async ctx => {
     status: STATUSES.get(2)
   };
 });
-
-
-
 
 router.put('/presentations/:id/rejected', async ctx => {
   console.log('rejected')
@@ -218,8 +227,8 @@ router.put('/presentations/:id/rejected', async ctx => {
     UPDATE presentations
     SET status_id = 3
     WHERE id = $1
-    AND status_id IN (1, 3)
-    AND event_id IN (SELECT e.id FROM events e WHERE e.account_id = $2)
+    AND status_id IN (1, 2)
+    AND event_id = $2
     RETURNING email, presenter_name AS "presenterName", company_name AS "companyName", title, synopsis
   `, [id, ctx.claims.id]);
   if (rows.length === 0) {
