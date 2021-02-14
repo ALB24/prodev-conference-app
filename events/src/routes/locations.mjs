@@ -16,11 +16,15 @@ export const router = new Router();
 router.use(authorize);
 
 router.get('/', async ctx => {
+  console.log('GET locations', ctx.request.body)
+
   const { rows } = await selectAll();
   ctx.body = rows;
 });
 
 router.post('/', async ctx => {
+  console.log('POST locations', ctx.request.body)
+
   trimProperty(ctx.request.body, 'name');
   trimProperty(ctx.request.body, 'city');
   trimProperty(ctx.request.body, 'state');

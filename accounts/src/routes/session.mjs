@@ -19,6 +19,7 @@ if (secret === undefined || secret.length === 0) {
 export const router = new Router();
 
 router.put('new_session', 'session', async ctx => {
+  console.log('PUT sessions', ctx.request.body)
   let {
     email,
     password
