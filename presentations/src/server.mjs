@@ -3,14 +3,14 @@ import cors from '@koa/cors';
 import dotenv from 'dotenv';
 import Koa from 'koa';
 import niv from 'node-input-validator';
+dotenv.config();
 import {
   router
 } from './routes/index.mjs';
-import {
-  bearer,
-} from './security.mjs';
 
-dotenv.config();
+import {
+  security
+} from 'conference-app-lib';
 
 const port = Number.parseInt(process.env['PORT']);
 if (Number.isNaN(port)) {
@@ -28,8 +28,10 @@ app.use(async (ctx, next) => {
   await next()
 })
 
-app.use(niv.koa());
-app.use(bearer);
+app.use(niv.koa())
+
+app.use(security.bearer)
+app.use(security.authorize)
 
 app.use(bodyParser());
 

@@ -1,12 +1,11 @@
-import {
+import { 
+  trimProperty,
+  BadgesREST,
   pool
-} from '../db/index.mjs';
-import {
-  trimProperty
-} from '../strings.mjs';
+ } from 'conference-app-lib'
+
 import Router from '@koa/router';
-import {authorize} from '../security.mjs'
-import {BadgesREST} from 'conference-app-lib'
+import { authorizeEvent } from '../security.mjs'
 
 const badgeService = new BadgesREST(process.env.BADGE_SVC_HOST)
 
@@ -19,7 +18,7 @@ export const router = new Router({
   prefix: '/events/:eventId'
 });
 
-router.use(authorize)
+router.use(authorizeEvent)
 
 router.get('/', async ctx => {
   const {
