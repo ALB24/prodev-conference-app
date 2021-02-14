@@ -1,6 +1,6 @@
-const RESTBase = require('./RESTBase')
+import { RESTBase } from './RESTBase.mjs'
 
-module.exports = class BadgesREST extends RESTBase{
+export class BadgesREST extends RESTBase{
   transformResponse(res) {
     return res
   }

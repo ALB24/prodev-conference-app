@@ -1,6 +1,6 @@
-const axios = require('axios')
+import axios from 'axios'
 
-module.exports = class RESTBase {
+export class RESTBase {
   constructor (baseURL) {
     this.http = axios.create({ baseURL })
   }
