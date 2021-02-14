@@ -1,5 +1,6 @@
 import Router from '@koa/router';
-import { validateEventId, validateBadgeBody } from './validators.mjs'
+import { validateBadgeBody } from './validators.mjs'
+import { validators } from 'conference-app-lib'
 import { handleBadgeCreation, handleGetAttendees, handleGetBadges } from './handlers.mjs' 
 import { authorizeEvent } from './security.mjs';
 
@@ -7,8 +8,8 @@ export const router = new Router({
   prefix: '/events/:eventId'
 });
 
+router.use(validators.validateEventId)
 router.use(authorizeEvent);
-router.use(validateEventId)
 
 router.get('/', handleGetBadges);
 router.get('/attendees', handleGetAttendees)

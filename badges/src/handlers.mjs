@@ -3,6 +3,8 @@ import {
   getAttendeesForEvent, 
   upsertBadge } from './repository.mjs'
 
+import { extractBadgeInfo } from './helpers.mjs'
+
 export const handleGetBadges = async (ctx) => {
   console.log('GET badges handler')
   const { eventId } = ctx.params;
@@ -24,11 +26,11 @@ export const handleBadgeCreation = role => async (ctx) => {
   if (badgeResult) {
     ctx.status = 201;
     ctx.body = {
-      id: badge.id,
+      id: badgeResult.id,
       email: badgeInfo.email,
       name: badgeInfo.name,
       companyName: badgeInfo.companyName,
-      created: badge.created,
+      created: badgeResult.created,
     };
   } else {
     ctx.status = 500

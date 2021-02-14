@@ -4,13 +4,10 @@ import dotenv from 'dotenv';
 import Koa from 'koa';
 import niv from 'node-input-validator';
 dotenv.config();
-import {
-  router
-} from './routes/index.mjs';
 
-import {
-  security
-} from 'conference-app-lib';
+import { router } from './router.mjs';
+
+import { security } from 'conference-app-lib';
 
 const port = Number.parseInt(process.env['PORT']);
 if (Number.isNaN(port)) {
