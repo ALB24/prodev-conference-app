@@ -66,6 +66,7 @@ services:
     volumes:
       - ./presentations/src:/usr/src/app/src
       - ./presentations/migrations:/usr/src/app/migrations
+      - ./shared-libs:/usr/src/shared-libs
     environment:
       PORT: 80
       JWT_SECRET: ${JWT_SECRET}

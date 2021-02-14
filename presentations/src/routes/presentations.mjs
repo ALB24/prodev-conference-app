@@ -6,9 +6,9 @@ import {
 } from '../strings.mjs';
 import Router from '@koa/router';
 import {authorize} from '../security.mjs'
-import { BadgeService } from '../BadgeService.mjs'
+import {BadgesREST} from 'conference-app-lib'
 
-const badgeService = new BadgeService(process.env.BADGE_SVC_HOST)
+const badgeService = new BadgesREST(process.env.BADGE_SVC_HOST)
 
 const STATUSES = new Map();
 STATUSES.set(1, 'SUBMITTED');
@@ -193,17 +193,8 @@ router.put('/presentations/:id/approved', async ctx => {
     presentationId
   }
 
-  // TODO: Send the presenter to the badges service
-  // await pool.query(`
-  //   INSERT INTO badges (email, name, company_name, role, event_id)
-  //   VALUES ($1, $2, $3, 'SPEAKER', $4)
-  //   ON CONFLICT (email, event_id)
-  //   DO
-  //   UPDATE SET role = 'SPEAKER'
-  // `, [email, presenterName, companyName, eventId]);
   const badgeResponse = await badgeService.sendPresenter(eventId, presenter, ctx.token)
 
-  console.log("Badge response:", badgeResponse)
   ctx.body = {
     id: presentationId,
     email,
