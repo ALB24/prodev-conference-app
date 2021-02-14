@@ -6,8 +6,7 @@ import niv from 'node-input-validator';
 dotenv.config();
 
 import { router } from './router.mjs';
-
-import { security } from 'conference-app-lib';
+import { security, logging } from 'conference-app-lib';
 
 const port = Number.parseInt(process.env['PORT']);
 if (Number.isNaN(port)) {
@@ -20,10 +19,7 @@ app.use(cors({
   allowHeaders: ['Authorization', 'Content-Type']
 }));
 
-app.use(async (ctx, next) => {
-  console.log(ctx.request.method, ctx.request.path)
-  await next()
-})
+app.use(logging.logRequests)
 
 app.use(niv.koa())
 

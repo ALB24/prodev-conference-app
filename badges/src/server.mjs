@@ -1,10 +1,10 @@
-import bodyParser from 'koa-body';
-import cors from '@koa/cors';
-import dotenv from 'dotenv';
-import Koa from 'koa';
-import niv from 'node-input-validator';
-import { router } from './router.mjs';
-import { security } from 'conference-app-lib';
+import bodyParser from 'koa-body'
+import cors from '@koa/cors'
+import dotenv from 'dotenv'
+import Koa from 'koa'
+import niv from 'node-input-validator'
+import { router } from './router.mjs'
+import { security, logging } from 'conference-app-lib'
 
 dotenv.config();
 
@@ -23,10 +23,7 @@ app.use(niv.koa());
 app.use(security.bearer);
 app.use(security.authorize);
 
-app.use(async (ctx, next) => {
-  console.log(ctx.request.method, ctx.request.path)
-  await next()
-})
+app.use(logging.logRequests)
 
 app.use(bodyParser());
 
