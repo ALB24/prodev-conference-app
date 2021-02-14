@@ -145,4 +145,6 @@ services:
       - ./db/init.sh:/docker-entrypoint-initdb.d/init.sh
     ports:
       - 5432:5432
+  rabbitmq:
+    image: "rabbitmq:3"
 

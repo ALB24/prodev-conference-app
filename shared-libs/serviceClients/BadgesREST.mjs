@@ -1,20 +1,15 @@
-import { RESTBase } from './RESTBase.mjs'
+import {
+  RESTBase
+} from './RESTBase.mjs'
 
-export class BadgesREST extends RESTBase{
-  transformResponse(res) {
-    return res
-  }
-
-  transformError(err) {
-    return err
-  }
-
+export class BadgesREST extends RESTBase {
   sendPresenter(eventId, presenterInfo, token) {
-    console.log(presenterInfo)
-    return this.http.post(`events/${eventId}/presenters`, presenterInfo, { headers: { Authorization: `Bearer ${ token }`}}).then(this.transformResponse.bind(this)).catch(e => {
-      // TODO: create some contract for this failure case
-      console.log(e.response.data)
-      throw e
-    })
+    return this.http.post(`events/${eventId}/presenters`, presenterInfo, {
+        headers: {
+          Authorization: `Bearer ${ token }`
+        }
+      })
+      .then(this.transformResponse.bind(this))
+      .catch(this.transformError.bind(this))
   }
 }
