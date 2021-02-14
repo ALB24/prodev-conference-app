@@ -12,6 +12,7 @@ router.use(authorize);
 
 // get badges for event
 router.get('/', async ctx => {
+  console.log('GET badges')
   const { eventId } = ctx.params;
   let v = await ctx.validator(ctx.params, {
     eventId: 'required|integer',
@@ -27,12 +28,10 @@ router.get('/', async ctx => {
   }
 
   const { rows } = await pool.query(`
-    SELECT beid, b.email, b.name, b.company_name AS "companyName", b.role
-    FROM badges b
-    JOIN events_accounts ea ON (b.event_id = ea.event_id AND ea.account_id = a.id)
-    WHERE a.id = $1
-    AND e.id = $2
-  `, [ctx.claims.id, eventId])
+    SELECT id, email, name, company_name, role
+    FROM badges
+    WHERE event_id = $1
+  `, [eventId])
   
   ctx.body = rows.map(x => ({
     name: x.name,
@@ -42,6 +41,7 @@ router.get('/', async ctx => {
   for (let item of ctx.body) {
     item.qrcode = await qrcode.toString(`${item.id}|${item.name}`);
   }
+
 });
 
 // get attendees for event
@@ -70,12 +70,8 @@ router.get('/attendees', async ctx => {
   
   ctx.body = rows.map(x => ({
     name: x.name,
-    companyName: x.companyName,
-    role: x.role,
+    email: x.email,
   }));
-  for (let item of ctx.body) {
-    item.qrcode = await qrcode.toString(`${item.id}|${item.name}`);
-  }
 });
 
 // add attendee to event
