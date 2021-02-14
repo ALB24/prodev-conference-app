@@ -9,6 +9,7 @@ const DEFAULT_HASH = '$2a$10$QlWNohhjpbGuty6UnyeeJOeKY6dKbiaoFxeWdOoIUiNYaO/ZD2k
 export const router = new Router();
 
 router.post('new_account', '/', async ctx => {
+  console.log('POST accounts', ctx.request.body)
   trimProperty(ctx.request.body, 'name');
   trimProperty(ctx.request.body, 'email');
   trimProperty(ctx.request.body, 'password');

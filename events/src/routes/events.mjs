@@ -7,6 +7,8 @@ import {
 } from '../security.mjs';
 
 async function getOneEvent(id, email) {
+  console.log('getOneEvent', id, email)
+
   const {
     rows
   } = await pool.query(`
@@ -18,10 +20,10 @@ async function getOneEvent(id, email) {
            l.created AS location_created, l.updated AS location_updated
     FROM events e
     JOIN locations l ON (e.location_id = l.id)
-    JOIN accounts a ON (e.account_id = a.id)
     WHERE e.id = $1
-    AND a.email = $2
-  `, [id, email]);
+  `, [id]);
+
+  console.log('ROWS', rows)
 
   if (rows.length === 0) {
     return null;
@@ -70,20 +72,29 @@ export const router = new Router();
 router.use(authorize);
 
 router.get('/', async ctx => {
+  console.log('GET events', ctx.request.body)
+
+  const accountId = ctx.claims.id;
+  console.log('accountId', ctx.claims, accountId)
+
   const {
     rows
   } = await pool.query(`
       SELECT e.id, e.name, e.from, e.to, e.description, e.logo_url AS "logoUrl"
       FROM events e
-      JOIN accounts a ON(e.account_id = a.id)
-      WHERE a.email = $1
+      WHERE e.account_id = $1
     `,
-    [ctx.claims.email]
-  );
+    [accountId]
+    );
+  
+  console.log('GET events ROWS', rows)
+  
   ctx.body = rows;
 });
 
 router.post('/', async ctx => {
+  console.log('POST events', ctx.request.body)
+
   const accountId = ctx.claims.id;
   if (!accountId) {
     ctx.status = 401;
@@ -150,11 +161,13 @@ router.post('/', async ctx => {
 });
 
 router.get('/:id', async ctx => {
-  console.log('get')
+  console.log('GET events ID', ctx.request.body)
   const {
     id
   } = ctx.params;
   const event = await getOneEvent(id, ctx.claims.email);
+
+  console.log('event', event)
 
   if (event === null) {
     ctx.status = 404;
@@ -168,7 +181,8 @@ router.get('/:id', async ctx => {
 });
 
 router.delete('/:id', async ctx => {
-  console.log('del')
+  console.log('DELETE events', ctx.request.body)
+  
   const {
     id
   } = ctx.params;
@@ -186,7 +200,8 @@ router.delete('/:id', async ctx => {
 });
 
 router.put('/:id', async ctx => {
-  console.log('put')
+  console.log('PUT events ID', ctx.params, ctx.claims, ctx.request.body)
+  
   let {
     name,
     from,
@@ -207,6 +222,19 @@ router.put('/:id', async ctx => {
   if (logoUrl === '') {
     logoUrl = null;
   }
+
+  console.log('INFO',
+    name,
+    from,
+    to,
+    description,
+    logoUrl,
+    locationId,
+    version,
+    numberOfPresentations,
+    maximumNumberOfAttendees
+  );
+  
   let eventRows;
   try {
     const {
@@ -229,6 +257,9 @@ router.put('/:id', async ctx => {
       RETURNING id, created, updated, version
     `, [ctx.params.id, version, name, from, to, description, logoUrl, locationId, numberOfPresentations, maximumNumberOfAttendees, ctx.claims.id]);
     eventRows = rows;
+
+    console.log("PUT EVENT ROWS", eventRows, ctx.claims.id)
+
   } catch (e) {
     console.error(e);
     ctx.status = 400;
