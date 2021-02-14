@@ -60,6 +60,7 @@ export async function bearer(ctx, next) {
   if (auth && auth.startsWith('Bearer ')) {
     let token = auth.substring(7);
     try {
+      ctx.token = token
       ctx.claims = verifyToken(token);
     } catch (e) {
       console.error('INVALID TOKEN!')

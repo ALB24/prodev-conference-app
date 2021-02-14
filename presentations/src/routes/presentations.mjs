@@ -6,6 +6,9 @@ import {
 } from '../strings.mjs';
 import Router from '@koa/router';
 import {authorize} from '../security.mjs'
+import { BadgeService } from '../BadgeService.mjs'
+
+const badgeService = new BadgeService(process.env.BADGE_SVC_HOST)
 
 const STATUSES = new Map();
 STATUSES.set(1, 'SUBMITTED');
@@ -183,6 +186,13 @@ router.put('/presentations/:id/approved', async ctx => {
     synopsis
   } = rows[0];
 
+  const presenter = {
+    name: presenterName,
+    email,
+    companyName,
+    presentationId
+  }
+
   // TODO: Send the presenter to the badges service
   // await pool.query(`
   //   INSERT INTO badges (email, name, company_name, role, event_id)
@@ -191,7 +201,9 @@ router.put('/presentations/:id/approved', async ctx => {
   //   DO
   //   UPDATE SET role = 'SPEAKER'
   // `, [email, presenterName, companyName, eventId]);
+  const badgeResponse = await badgeService.sendPresenter(eventId, presenter, ctx.token)
 
+  console.log("Badge response:", badgeResponse)
   ctx.body = {
     id: presentationId,
     email,
@@ -202,9 +214,6 @@ router.put('/presentations/:id/approved', async ctx => {
     status: STATUSES.get(2)
   };
 });
-
-
-
 
 router.put('/presentations/:id/rejected', async ctx => {
   console.log('rejected')
