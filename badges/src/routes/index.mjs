@@ -195,15 +195,16 @@ router.post('/presenters', async ctx => {
     eventId
   }
 
+  console.log(badgeInfo)
   const badge = await upsertBadge(badgeInfo)
   if (badge) {
     ctx.status = 201;
     ctx.body = {
-      id,
+      id: badge.id,
       email,
       name,
       companyName,
-      created,
+      created: badge.created,
     };
   } else {
     ctx.status = 400
@@ -218,8 +219,11 @@ async function upsertBadge({ name, email, companyName, eventId, role = 'presente
   const { rows } = await pool.query(`
     INSERT INTO badges (name, email, company_name, event_id, role)
     VALUES ($1, $2, $3, $4, $5)
+    ON CONFLICT (email)
+    DO 
+      UPDATE SET role='presenter'
     RETURNING id, created
-  `, [name, email, companyName, eventId, role]);
+  `, [name, email, companyName, eventId, role])
   return rows[0];
 }
 
