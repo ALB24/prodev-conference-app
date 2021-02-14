@@ -18,4 +18,4 @@ RUN chmod +x /wait
 # Use the /wait command to wait for PostgreSQL
 # Run the migrations
 # Start the app
-CMD /wait && npm run migrate -- up && npm run dev
+CMD /wait && npm i ../shared-libs && npm run migrate -- up && npm run dev

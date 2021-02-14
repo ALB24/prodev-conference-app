@@ -4,9 +4,28 @@ import dotenv from 'dotenv'
 import Koa from 'koa'
 import niv from 'node-input-validator'
 import { router } from './router.mjs'
-import { security, logging } from 'conference-app-lib'
+import { security, logging, serviceClients } from 'conference-app-lib';
+
+import { handleNewEventListener } from "./handlers.mjs";
+
+const queueClient = new serviceClients.QueueClient('amqp://rabbitmq');
 
 dotenv.config();
+
+if (!queueClient.connection) {
+  setTimeout(async () => {
+    const chan = await queueClient.subscribe('events', async (message) => {
+      await handleNewEventListener(message)
+      chan.ack(message)
+    })
+  }, 1000)
+} else {
+  queueClient.subscribe('events', handleNewEventListener)
+  const chan = await queueClient.subscribe('events', async (message) => {
+    await handleNewEventListener(message)
+    chan.ack(message)
+  })
+}
 
 const port = Number.parseInt(process.env['PORT']);
 if (Number.isNaN(port)) {

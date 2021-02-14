@@ -37,12 +37,14 @@ services:
   accounts:
     depends_on: 
       - postgres
+      - rabbitmq
     build:
       context: ./accounts
       dockerfile: Dockerfile.dev
     volumes:
       - ./accounts/src:/usr/src/app/src
       - ./accounts/migrations:/usr/src/app/migrations
+      - ./shared-libs:/usr/src/shared-libs
     environment:
       PORT: 80
       JWT_SECRET: ${JWT_SECRET}
@@ -51,7 +53,7 @@ services:
       PGAPPNAME: "Conference GO"
       # See the Dockerfile for the backend to understand
       # how the WAIT_HOSTS values are used
-      WAIT_HOSTS: postgres:5432
+      WAIT_HOSTS: postgres:5432, rabbitmq:5672
 
       # These values are the same as below
       PGDATABASE: accounts
@@ -60,6 +62,7 @@ services:
   presentations:
     depends_on: 
       - postgres
+      - rabbitmq
     build:
       context: ./presentations
       dockerfile: Dockerfile.dev
@@ -75,7 +78,7 @@ services:
       PGAPPNAME: "Conference GO"
       # See the Dockerfile for the backend to understand
       # how the WAIT_HOSTS values are used
-      WAIT_HOSTS: postgres:5432
+      WAIT_HOSTS: postgres:5432, rabbitmq:5672
 
       # These values are the same as below
       PGDATABASE: presentations
@@ -86,12 +89,14 @@ services:
   events:
     depends_on: 
       - postgres
+      - rabbitmq
     build:
       context: ./events
       dockerfile: Dockerfile.dev
     volumes:
       - ./events/src:/usr/src/app/src
       - ./events/migrations:/usr/src/app/migrations
+      - ./shared-libs:/usr/src/shared-libs
     environment:
       PORT: 80
       JWT_SECRET: ${JWT_SECRET}
@@ -100,7 +105,7 @@ services:
       PGAPPNAME: "Conference GO"
       # See the Dockerfile for the backend to understand
       # how the WAIT_HOSTS values are used
-      WAIT_HOSTS: postgres:5432
+      WAIT_HOSTS: postgres:5432, rabbitmq:5672
 
       # These values are the same as below
       PGDATABASE: events
@@ -109,6 +114,7 @@ services:
   badges:
     depends_on:
       - postgres
+      - rabbitmq
     build:
       context: ./badges
       dockerfile: Dockerfile.dev
@@ -124,7 +130,7 @@ services:
       PGAPPNAME: "Conference GO"
       # See the Dockerfile for the backend to understand
       # how the WAIT_HOSTS values are used
-      WAIT_HOSTS: postgres:5432
+      WAIT_HOSTS: postgres:5432, rabbitmq:5672
 
       # These values are the same as below
       PGDATABASE: badges

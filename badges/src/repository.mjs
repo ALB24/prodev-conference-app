@@ -1,6 +1,18 @@
 import { pool } from 'conference-app-lib'
 import qrcode from 'qrcode'
 
+export async function createEventAndAccount(account_id, event_id) {
+  const { rows } = await pool.query(`
+    INSERT INTO events_accounts (account_id, event_id)
+    VALUES ($1, $2)
+    ON CONFLICT (event_id)
+    DO NOTHING
+    RETURNING account_id, event_id
+  `, [account_id, event_id])
+
+  return rows[0]
+}
+
 export async function upsertBadge({ name, email, companyName, eventId, role = 'presenter'}) {
   const { rows } = await pool.query(`
     INSERT INTO badges (name, email, company_name, event_id, role)

@@ -1,9 +1,20 @@
 import { 
+  createEventAndAccount,
   getBadgesForEvent, 
   getAttendeesForEvent, 
   upsertBadge } from './repository.mjs'
 
 import { extractBadgeInfo } from './helpers.mjs'
+
+export const handleNewEventListener = async (message) => {
+  console.log('WE GOT A MESSAGE IN BADGES if', message.content.toString())
+  const eventMessage = JSON.parse(message.content.toString())
+  
+  if (eventMessage.status === 'created:event') {
+    const { account_id, event_id } = eventMessage;
+    await createEventAndAccount(account_id, event_id)
+  }
+}
 
 export const handleGetBadges = async (ctx) => {
   console.log('GET badges handler')

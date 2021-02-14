@@ -1,21 +1,12 @@
 import amqp from 'amqplib'
 
 export class QueueClient {
-  constructor({
-    host,
-    connection
-  }) {
+  constructor(host) {
     this.host = host
-    this.connection = connection
-    this.channels = new Map()
-  }
-
-  static async init(host) {
-    const connection = await amqp.connect(this.host)
-    return new QueueClient({
-      host,
-      connection
+    amqp.connect(this.host).then(c => {
+      this.connection = c
     })
+    this.channels = new Map()
   }
 
   // one channel per queue?

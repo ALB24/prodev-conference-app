@@ -5,6 +5,10 @@ import Router from '@koa/router';
 import {
   authorize,
 } from '../security.mjs';
+import { serviceClients } from 'conference-app-lib'
+
+
+const queueClient =  new serviceClients.QueueClient('amqp://rabbitmq');
 
 async function getOneEvent(id, email) {
   console.log('getOneEvent', id, email)
@@ -158,6 +162,8 @@ router.post('/', async ctx => {
     maximumNumberOfAttendees,
     location: locationRows[0],
   };
+
+  await queueClient.publish('events', JSON.stringify({status: 'created:event', account_id: accountId, event_id: id}))
 });
 
 router.get('/:id', async ctx => {
