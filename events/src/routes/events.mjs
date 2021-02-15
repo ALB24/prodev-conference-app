@@ -95,8 +95,8 @@ router.use(authorize);
 router.get('/', async ctx => {
   console.log('GET events', ctx.request.body)
 
-  const accountId = ctx.claims.id;
-  console.log('accountId', ctx.claims, accountId)
+  const account_id = ctx.claims.id;
+  console.log('account_id', ctx.claims, account_id)
 
   const {
     rows
@@ -105,7 +105,7 @@ router.get('/', async ctx => {
       FROM events e
       WHERE e.account_id = $1
     `,
-    [accountId]
+    [account_id]
   );
 
   console.log('GET events ROWS', rows)
@@ -116,8 +116,8 @@ router.get('/', async ctx => {
 router.post('/', async ctx => {
   console.log('POST events', ctx.request.body)
 
-  const accountId = ctx.claims.id;
-  if (!accountId) {
+  const account_id = ctx.claims.id;
+  if (!account_id) {
     ctx.status = 401;
     return ctx.body = {
       code: 'INVALID_TOKEN',
@@ -140,7 +140,7 @@ router.post('/', async ctx => {
       RETURNING id, created, updated, version,
                 number_of_presentations AS "numberOfPresentations",
                 maximum_number_of_attendees AS "maximumNumberOfAttendees"
-    `, [name, description, locationId, accountId]);
+    `, [name, description, locationId, account_id]);
     eventRows = rows;
   } catch (e) {
     console.error(e);
@@ -182,7 +182,7 @@ router.post('/', async ctx => {
 
   await amqpChannel.publish('events', '', Buffer.from(JSON.stringify({
     status: 'created:event',
-    account_id: accountId,
+    account_id: account_id,
     event_id: id
   })))
 });
@@ -251,21 +251,29 @@ router.put('/:id', async ctx => {
   if (to === '') {
     to = null;
   }
-  if (logoUrl === '') {
+  if (logoUrl === '' || logoUrl === undefined) {
     logoUrl = null;
   }
 
   console.log('INFO',
-    name,
-    from,
-    to,
-    description,
-    logoUrl,
-    locationId,
-    version,
-    numberOfPresentations,
-    maximumNumberOfAttendees
+    {
+      id: ctx.params.id,
+      version,
+      name,
+      from,
+      to,
+      description,
+      logoUrl,
+      locationId,
+      numberOfPresentations,
+      maximumNumberOfAttendees,
+      account_id: ctx.claims.id
+    }
   );
+
+  const event_id = ctx.params.id;
+  const account_id = ctx.claims.id;
+  console.log('account_id', ctx.claims, account_id)
 
   let eventRows;
   try {
@@ -287,7 +295,7 @@ router.put('/:id', async ctx => {
         AND version = $2
         AND account_id = $11
       RETURNING id, created, updated, version
-    `, [ctx.params.id, version, name, from, to, description, logoUrl, locationId, numberOfPresentations, maximumNumberOfAttendees, ctx.claims.id]);
+    `, [event_id, version, name, from, to, description, logoUrl, locationId, numberOfPresentations, maximumNumberOfAttendees, account_id]);
     eventRows = rows;
 
     console.log("PUT EVENT ROWS", eventRows, ctx.claims.id)
