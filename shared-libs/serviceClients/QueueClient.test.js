@@ -7,32 +7,37 @@ const sleep = t => new Promise(res => setTimeout(res, t))
 let rabbit
 
 beforeEach(async () => {
-  rabbit = await QueueClient.init('amqp://localhost')
+  rabbit = new QueueClient('amqp://localhost')
 })
 
 afterEach(async () => {
-  await rabbit.close()
+  if (rabbit.connection) {
+    await rabbit.close()
+  }
 })
 
 test('instantiates', () => {
-  ['host', 'connection', 'publish', 'subscribe', 'getChannel'].forEach(func => {
+  ['host', 'pendingConnection', 'connection', 'publish', 'subscribe', 'getChannel'].forEach(func => {
     expect(rabbit).toHaveProperty(func);
   })
 })
 
 test('create channel if does not exist', async () => {
+  await rabbit.pendingConnection
   const chan = await rabbit.getChannel('test1')
   expect(rabbit.channels.has('test1')).toBe(true)
   expect(rabbit.channels.get('test1')).toBe(chan)
 })
 
 test('subscribe return channel', async () => {
+  await rabbit.pendingConnection
   const chan = await rabbit.subscribe('test1', (data) => {})
   expect(rabbit.channels.has('test1')).toBe(true)
   expect(rabbit.channels.get('test1')).toBe(chan)
 })
 
 test('add publisher and consumer, send messages, consumer receives', async () => {
+  await rabbit.pendingConnection
   const p = await rabbit.getChannel('test1')
   let messages = []
 

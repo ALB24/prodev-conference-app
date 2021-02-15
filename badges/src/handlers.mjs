@@ -1,31 +1,50 @@
-import { 
-  createEventAndAccount,
-  getBadgesForEvent, 
-  getAttendeesForEvent, 
-  upsertBadge } from './repository.mjs'
+import {
+  createEvent,
+  deleteEvent,
+  getBadgesForEvent,
+  getAttendeesForEvent,
+  upsertBadge
+} from './repository.mjs'
 
-import { extractBadgeInfo } from './helpers.mjs'
+import {
+  extractBadgeInfo
+} from './helpers.mjs'
 
-export const handleNewEventListener = async (message) => {
-  console.log('WE GOT A MESSAGE IN BADGES if', message.content.toString())
+export const handleNewEventMessage = async (message) => {
   const eventMessage = JSON.parse(message.content.toString())
-  
-  if (eventMessage.status === 'created:event') {
-    const { account_id, event_id } = eventMessage;
-    await createEventAndAccount(account_id, event_id)
+  console.log('WE GOT A MESSAGE IN PRESENTATIONS:', eventMessage)
+  const {
+    account_id,
+    event_id,
+    status
+  } = eventMessage
+
+  switch (status) {
+    case 'created:event':
+      await createEvent(event_id, account_id);
+      break;
+    case 'deleted:event':
+      await deleteEvent(event_id);
+      break;
+    default:
+      throw new Error('Invalid message status')
   }
 }
 
 export const handleGetBadges = async (ctx) => {
   console.log('GET badges handler')
-  const { eventId } = ctx.params;
+  const {
+    eventId
+  } = ctx.params;
   const badges = await getBadgesForEvent(eventId)
   ctx.body = badges
 }
 
 export const handleGetAttendees = async (ctx) => {
   console.log('GET attendees handler')
-  const { eventId } = ctx.params;
+  const {
+    eventId
+  } = ctx.params;
   const attendees = await getAttendeesForEvent(eventId)
   ctx.body = attendees
 }
