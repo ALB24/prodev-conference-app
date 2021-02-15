@@ -59,6 +59,7 @@ services:
       PGDATABASE: accounts
       PGUSER: accounts_user
       PGPASSWORD: ${POSTGRES_ACCOUNTS_PW}
+      AMQP_HOST: amqp://rabbitmq
   presentations:
     depends_on: 
       - postgres
@@ -86,6 +87,7 @@ services:
       PGPASSWORD: ${POSTGRES_PRESENTATIONS_PW}
       BADGE_SVC_HOST: http://badges
       EVENT_SVC_HOST: http://events
+      AMQP_HOST: amqp://rabbitmq
   events:
     depends_on: 
       - postgres
@@ -111,6 +113,7 @@ services:
       PGDATABASE: events
       PGUSER: events_user
       PGPASSWORD: ${POSTGRES_EVENTS_PW}
+      AMQP_HOST: amqp://rabbitmq
   badges:
     depends_on:
       - postgres
@@ -136,6 +139,7 @@ services:
       PGDATABASE: badges
       PGUSER: badges_user
       PGPASSWORD: ${POSTGRES_BADGES_PW}
+      AMQP_HOST: amqp://rabbitmq
   postgres: 
     image: "postgres:13"
     environment: 

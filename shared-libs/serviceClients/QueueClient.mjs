@@ -1,15 +1,15 @@
 import amqp from 'amqplib'
 
 export class QueueClient {
-  constructor(host) {
+  constructor(host, exchange) {
     this.host = host
-    amqp.connect(this.host).then(c => {
+    this.connection = null
+    this.pendingConnection = amqp.connect(this.host).then(c => {
       this.connection = c
     })
     this.channels = new Map()
   }
 
-  // one channel per queue?
   async getChannel(name) {
     if (this.channels.has(name)) {
       return this.channels.get(name)
@@ -21,7 +21,9 @@ export class QueueClient {
 
   async subscribe(queue, handler) {
     const chan = await this.getChannel(queue)
-    return chan.assertQueue(queue).then(() => {
+    return chan.assertQueue(queue, {
+      exclusive: false
+    }).then(() => {
       chan.consume(queue, handler)
       return chan
     })
@@ -41,6 +43,6 @@ export class QueueClient {
       ps.push(ch.close())
     })
     await Promise.all(ps)
-    await this.connection.close()
+    return this.connection.close()
   }
 }

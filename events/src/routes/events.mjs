@@ -5,10 +5,27 @@ import Router from '@koa/router';
 import {
   authorize,
 } from '../security.mjs';
-import { serviceClients } from 'conference-app-lib'
+// import { serviceClients } from 'conference-app-lib'
+import amqp from 'amqplib'
 
+let amqpChannel
+amqp.connect(process.env.AMQP_HOST).then(conn => {
+  return conn.createChannel()
+}).then(chan => {
+  chan.assertExchange('events', 'fanout', {
+    durable: false
+  })
+  chan.assertQueue('events:badges').then(q => {
+    chan.bindQueue(q.queue, 'events', '')
+  })
+  chan.assertQueue('events:presentations').then(q => {
+    chan.bindQueue(q.queue, 'events', '')
+  })
+  amqpChannel = chan
+})
 
-const queueClient =  new serviceClients.QueueClient('amqp://rabbitmq');
+// const queueClient =  new serviceClients.QueueClient('amqp://rabbitmq');
+
 
 async function getOneEvent(id, email) {
   console.log('getOneEvent', id, email)
@@ -89,10 +106,10 @@ router.get('/', async ctx => {
       WHERE e.account_id = $1
     `,
     [accountId]
-    );
-  
+  );
+
   console.log('GET events ROWS', rows)
-  
+
   ctx.body = rows;
 });
 
@@ -163,7 +180,11 @@ router.post('/', async ctx => {
     location: locationRows[0],
   };
 
-  await queueClient.publish('events', JSON.stringify({status: 'created:event', account_id: accountId, event_id: id}))
+  await amqpChannel.publish('events', '', Buffer.from(JSON.stringify({
+    status: 'created:event',
+    account_id: accountId,
+    event_id: id
+  })))
 });
 
 router.get('/:id', async ctx => {
@@ -188,7 +209,7 @@ router.get('/:id', async ctx => {
 
 router.delete('/:id', async ctx => {
   console.log('DELETE events', ctx.request.body)
-  
+
   const {
     id
   } = ctx.params;
@@ -198,16 +219,21 @@ router.delete('/:id', async ctx => {
     await pool.query(`
       DELETE FROM events
       WHERE id = $1
-        AND account_id IN(SELECT id from accounts WHERE email = $2)
-    `, [id, ctx.claims.email]);
+        AND account_id = $2
+    `, [id, ctx.claims.id]);
   }
+
+  await amqpChannel.publish('events', '', Buffer.from(JSON.stringify({
+    status: 'deleted:event',
+    event_id: id
+  })))
 
   ctx.body = event || {};
 });
 
 router.put('/:id', async ctx => {
   console.log('PUT events ID', ctx.params, ctx.claims, ctx.request.body)
-  
+
   let {
     name,
     from,
@@ -240,7 +266,7 @@ router.put('/:id', async ctx => {
     numberOfPresentations,
     maximumNumberOfAttendees
   );
-  
+
   let eventRows;
   try {
     const {

@@ -1,12 +1,41 @@
-import { pool } from 'conference-app-lib'
+import {
+  pool
+} from 'conference-app-lib'
 
 const STATUSES = new Map();
 STATUSES.set(1, 'SUBMITTED');
 STATUSES.set(2, 'APPROVED');
 STATUSES.set(3, 'REJECTED');
 
+export async function createEvent(event_id, account_id) {
+  const {
+    rows
+  } = await pool.query(`
+    INSERT INTO events_accounts (account_id, event_id)
+    VALUES ($1, $2)
+    ON CONFLICT (event_id)
+    DO NOTHING
+    RETURNING account_id, event_id
+  `, [account_id, event_id])
+
+  return rows[0]
+}
+
+export async function deleteEvent(event_id) {
+  const {
+    rows
+  } = await pool.query(`
+    DELETE FROM events_accounts
+    WHERE event_id = $1
+  `, [event_id])
+
+  return rows[0]
+}
+
 export async function getPresentationsForEvent(eventId) {
-  const { rows } = await pool.query(`
+  const {
+    rows
+  } = await pool.query(`
     SELECT id, email, presenter_name, company_name, title, synopsis, status_id
     FROM presentations p
     WHERE event_id = $1
@@ -27,7 +56,9 @@ export async function createPresentation(eventId, presentationInfo) {
     synopsis
   } = presentationInfo
 
-  const { rows } = await pool.query(`
+  const {
+    rows
+  } = await pool.query(`
     INSERT INTO presentations (email, presenter_name, company_name, title, synopsis, event_id)
     SELECT $1, $2, $3, $4, $5, $6
     RETURNING id, status_id AS "statusId"
@@ -36,7 +67,10 @@ export async function createPresentation(eventId, presentationInfo) {
   if (!rows.length) {
     return null
   }
-  const { id, statusId } = rows[0]
+  const {
+    id,
+    statusId
+  } = rows[0]
   return {
     id,
     email,
@@ -50,7 +84,9 @@ export async function createPresentation(eventId, presentationInfo) {
 }
 
 export async function approvePresentation(eventId, presentationId) {
-  const { rows } = await pool.query(`
+  const {
+    rows
+  } = await pool.query(`
     UPDATE presentations
     SET status_id = 2
     WHERE id = $1
@@ -70,7 +106,9 @@ export async function approvePresentation(eventId, presentationId) {
 }
 
 export async function rejectPresentation(eventId, presentationId) {
-  const { rows } = await pool.query(`
+  const {
+    rows
+  } = await pool.query(`
     UPDATE presentations
     SET status_id = 3
     WHERE id = $1

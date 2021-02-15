@@ -3,29 +3,41 @@ import cors from '@koa/cors'
 import dotenv from 'dotenv'
 import Koa from 'koa'
 import niv from 'node-input-validator'
-import { router } from './router.mjs'
-import { security, logging, serviceClients } from 'conference-app-lib';
+import {
+  router
+} from './router.mjs'
+import amqp from 'amqplib'
+import {
+  security,
+  logging,
+} from 'conference-app-lib';
 
-import { handleNewEventListener } from "./handlers.mjs";
-
-const queueClient = new serviceClients.QueueClient('amqp://rabbitmq');
+import {
+  handleNewEventMessage
+} from "./handlers.mjs";
 
 dotenv.config();
 
-if (!queueClient.connection) {
-  setTimeout(async () => {
-    const chan = await queueClient.subscribe('events', async (message) => {
-      await handleNewEventListener(message)
-      chan.ack(message)
+// const queueClient = new serviceClients.QueueClient(process.env.AMQP_HOST);
+// queueClient.pendingConnection.then(async () => {
+//   const chan = await queueClient.subscribe('events', async (message) => {
+//     console.log('Badges Message')
+//     // TODO: something smart with errors
+//     await handleNewEventMessage(message).then(res => chan.ack(message)).catch(console.error)
+//   })
+// })
+
+amqp.connect(process.env.AMQP_HOST).then(conn => {
+  conn.createChannel().then(chan => {
+    chan.assertQueue('events:badges').then(() => {
+      chan.consume('events:badges', (message) => {
+        console.log('Badges Message')
+        // TODO: something smart with errors
+        handleNewEventMessage(message).then(res => chan.ack(message)).catch(console.error)
+      })
     })
-  }, 1000)
-} else {
-  queueClient.subscribe('events', handleNewEventListener)
-  const chan = await queueClient.subscribe('events', async (message) => {
-    await handleNewEventListener(message)
-    chan.ack(message)
   })
-}
+})
 
 const port = Number.parseInt(process.env['PORT']);
 if (Number.isNaN(port)) {

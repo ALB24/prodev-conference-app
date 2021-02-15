@@ -16,6 +16,7 @@
   "dependencies": {
     "@koa/cors": "^3.1.0",
     "@koa/router": "^10.0.0",
+    "amqplib": "^0.6.0",
     "conference-app-lib": "file:../shared-libs",
     "db-migrate": "^0.11.12",
     "db-migrate-pg": "^1.2.2",
